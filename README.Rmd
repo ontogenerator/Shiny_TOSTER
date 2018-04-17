@@ -31,10 +31,10 @@ In both cases, the following packages need to be installed in order for the app 
 
 ### Launching the app locally
 
-You can launch the app by giving the name of its directory to the function runApp. If the app is in a folder of the working directory called "shiny_TOSTER", run it with the following code:
+You can launch the app by giving the name of its directory to the function runApp. If the app is in a folder of the working directory called "Shiny_TOSTER", run it with the following code:
 ```
 library(shiny)
-runApp(shiny_TOSTER)
+runApp(Shiny_TOSTER)
 ```
 Alternatively, you can open the file Shiny_TOSTER.R in the RStudio editor and click the "Run App" button at the top of the editor.  
 
