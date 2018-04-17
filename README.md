@@ -15,9 +15,13 @@ You can copy the app file Shiny\_TOSTER.R to your system and run it locally. Alt
 In both cases, the following packages need to be installed in order for the app to run:
 
 `shiny` from <https://cran.r-project.org/web/packages/shiny/index.html>
+
 `TOSTER` from <https://cran.r-project.org/web/packages/TOSTER/index.html>
+
 `MASS` from <https://cran.r-project.org/web/packages/MASS/index.html>
+
 `dplyr` from <https://cran.r-project.org/web/packages/dplyr/index.html>
+
 `ggplot2` from <https://cran.r-project.org/web/packages/ggplot2/index.html>
 
 ### Launching the app locally
@@ -36,7 +40,7 @@ From the R console run the following commands to launch the App:
     # Assuming 'shiny' package and all other prerequisites are already installed 
     library(shiny)     
     #name of the app dir and username
-    runGitHub("shiny_TOSTER", "ontogenerator")
+    runGitHub("Shiny_TOSTER", "ontogenerator")
 
 Your browser should launch the shiny app directly on your machine.
 
