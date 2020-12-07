@@ -1,9 +1,7 @@
 library(shiny)
 library(TOSTER)
 library(MASS)
-library(dplyr)
-# library(purrr)
-library(ggplot2)
+library(tidyverse)
 
 ui <- fluidPage(
   titlePanel("TOSTER Visualization Tool"),
@@ -30,29 +28,27 @@ ui <- fluidPage(
                                                 value = 4, step = 0.1),
                                    numericInput("sd1",
                                                 label = h3("SD of first group"), value = 3,
-                                                min = 0),
+                                                min = 0.01),
                                    numericInput("sd2",
                                                 label = h3("SD of second group"), value = 3,
-                                                min = 0)
+                                                min = 0.01)
                   ),
                   conditionalPanel(condition = "input.tabselected < 3 && input.sample == 'simulated'",
                                    numericInput("sim_mean1",
-                                                label = h3("Mean of first simulated group"), value = 22,
-                                                min = 1),
+                                                label = h3("Mean of first simulated group"), value = 22),
                                    numericInput("sim_mean2",
-                                                label = h3("Mean of second simulated group"), value = 22,
-                                                min = 1),
+                                                label = h3("Mean of second simulated group"), value = 22),
                                    numericInput("sim_sesoi",
                                                 label = h3("Smallest Effect Size of Interest (SESOI)"),
-                                                value = 4, step = 0.1)
+                                                value = 4, step = 0.1, min = 0.01)
                   ),
                   conditionalPanel(condition = "input.tabselected == 1 && input.sample == 'simulated'",
                                    numericInput("sim_sd1",
                                                 label = h3("SD of first simulated group"), value = 3,
-                                                min = 0),
+                                                min = 0.01),
                                    numericInput("sim_sd2",
                                                 label = h3("SD of second simulated group"), value = 3,
-                                                min = 0)
+                                                min = 0.01)
                   ),
                   conditionalPanel(condition = "(input.tabselected == 1 || input.tabselected == 3) &&
                                    input.sample == 'observed'",
@@ -75,7 +71,7 @@ ui <- fluidPage(
                   conditionalPanel(condition = "input.tabselected == 2 && input.sample == 'observed'",
                                    numericInput("r_paired",
                                                 label = h3("Correlation (Pearson's r)"), value = 0.75,
-                                                step = 0.1, min = -1, max = 1),
+                                                step = 0.1, min = -0.99, max = 0.99),
                                    numericInput("n_paired",
                                                 label = h3("Number of pairs of observations"),
                                                 value = 10, min = 1)
@@ -83,10 +79,10 @@ ui <- fluidPage(
                   conditionalPanel(condition = "input.tabselected == 2 && input.sample == 'simulated'",
                                    numericInput("sim_sd_paired",
                                                 label = h3("SD of a typical group"), value = 3,
-                                                min = 0),
+                                                min = 0.01),
                                    numericInput("sim_r_paired",
                                                 label = h3("Repeatability (r)"), value = 0.75,
-                                                step = 0.1, min = 0, max = 1),
+                                                step = 0.1, min = 0.01, max = 0.99),
                                    numericInput("sim_n_paired",
                                                 label = h3("Number of simulated pairs of observations"),
                                                 value = 10, min = 1)
@@ -94,12 +90,12 @@ ui <- fluidPage(
                   conditionalPanel(condition = "input.tabselected > 2 && input.sample == 'observed'",
                                    numericInput("sesoi_r",
                                                 label = h3("Smallest Effect Size of Interest (SESOI)"),
-                                                value = 0.3, step = 0.05)
+                                                value = 0.3, step = 0.05, min = 0.01)
                   ),
                   conditionalPanel(condition = "input.tabselected > 2 && input.sample == 'simulated'",
                                    numericInput("sim_sesoi_r",
                                                 label = h3("Smallest Effect Size of Interest (SESOI)"),
-                                                value = 0.3, step = 0.05)
+                                                value = 0.3, step = 0.05, min = 0.01)
                   ),
                   conditionalPanel(condition = "input.tabselected == 3 && input.sample == 'observed'",
                                    numericInput("pr1",
@@ -135,11 +131,11 @@ ui <- fluidPage(
                   ),
                   conditionalPanel(condition = "input.sample == 'observed'",
                                    numericInput("alpha", label = h3("Alpha for statistical tests"), value = 0.05,
-                                                step = 0.01, min = 0, max = 1)
+                                                step = 0.01, min = 0.000001, max = 1)
                   ),
                   conditionalPanel(condition = "input.sample == 'simulated'",
                                    numericInput("sim_alpha", label = h3("Alpha for statistical tests"), value = 0.05,
-                                                step = 0.01, min = 0, max = 1)
+                                                step = 0.01, min = 0.000001, max = 1)
                   ),
                   radioButtons(
                     "sample", "Is input observed data or parameters to sample from:",
@@ -227,6 +223,101 @@ server <- function(input, output) {
       )
     } else { #simulated option calls custom simulation code with ggplot output
       
+      get_TOSTT <- function(n1, n2, m1, m2, sd1, sd2, paired = FALSE, r_paired = 0.75, n_paired, sd_paired){
+        
+        if (paired == FALSE) {
+          # generate random samples from given input
+          samp1 <- rnorm(n = n1, mean = m1, sd = sd1)
+          samp2 <- rnorm(n = n2, mean = m2, sd = sd2)
+          # calculate summary statistics from the random samples
+          m1_s <- mean(samp1)
+          sd1_s <- sd(samp1)
+          m2_s <- mean(samp2)
+          sd2_s <- sd(samp2)
+          se <- sqrt(sd1_s^2/n1 + sd2_s^2/n2)
+          degree_f <- (sd1_s^2/n1 + sd2_s^2/n2)^2 /
+            (((sd1_s^2/n1)^2/(n1 - 1)) + ((sd2_s^2/n2)^2/(n2 - 1)))
+          
+          # p value for NHST
+          t <- (m1_s - m2_s)/se
+          pttest <- 2 * pt(-abs(t), df = degree_f)
+        } else {
+          # first generate individual intercepts, then sample individual data points by adding the
+          # individual variance around those intercepts and the effect size to the second sample
+          
+          # decomposition of standard variation to between- and within- components
+          sd_between <- sqrt(sd_paired^2 * r_paired)
+          sd_within <- sqrt(sd_between^2 * (1 - r_paired)/r_paired)
+          
+          d <- tibble(ind_intercept = rnorm(n_paired, m1, sd_between)) %>%
+            mutate(ind = 1:n()) %>%
+            rowwise() %>%
+            mutate(samp1 = rnorm(1, ind_intercept, sd_within),
+                   samp2 = rnorm(1, ind_intercept + m2 - m1, sd_within))
+          m1_s <- mean(d$samp1)
+          m2_s <- mean(d$samp2)
+          se <- sd(d$samp1 - d$samp2)/sqrt(n_paired)
+          
+          degree_f <- n_paired - 1
+          # p value for NHST
+          t <- (m1_s - m2_s)/se
+          pttest <- 2 * pt(abs(t), degree_f, lower.tail = FALSE)
+        }
+        
+        t1 <- ((m1_s - m2_s) - low_eqbound)/se
+        p1 <- pt(t1, degree_f, lower.tail = FALSE)
+        t2 <- ((m1_s - m2_s) - high_eqbound)/se
+        p2 <- pt(t2, degree_f, lower.tail = TRUE)
+        # take higher p value as p value for the outcome of TOST
+        ptost <- max(p1, p2)
+        
+        list(LL90 = (m1_s - m2_s) - qt(1 - alpha, degree_f) * se,
+             UL90 = (m1_s - m2_s) + qt(1 - alpha, degree_f) * se,
+             LL95 = (m1_s - m2_s) - qt(1 - (alpha/2), degree_f) * se,
+             UL95 = (m1_s - m2_s) + qt(1 - (alpha/2), degree_f) * se,
+             testoutcome = if_else(pttest < alpha, 1, 0),
+             TOSToutcome = if_else(ptost < alpha, 1, 0))
+      }
+      
+      get_TOSTcor <- function(data, n) {
+        # sample n = "Number of pairs of observations" individuals from the total population and
+        # save the correlation of the samples
+        corr <- cor(dplyr::sample_n(data, n))[1, 2]
+        
+        z1 <- ((log((1 + abs(corr))/(1 - abs(corr)))/2) -
+                 (log((1 + low_eqbound_r)/(1 - low_eqbound_r))/2))/(sqrt(1/(n - 3)))
+        z2 <- ((log((1 + abs(corr))/(1 - abs(corr)))/2) -
+                 (log((1 + high_eqbound_r)/(1 - high_eqbound_r))/2))/(sqrt(1/(n - 3)))
+        # calculate p values for TOST
+        p1 <- ifelse(low_eqbound_r < corr,
+                     pnorm(-abs(z1)), 1 - pnorm(-abs(z1)))
+        p2 <- ifelse(high_eqbound_r > corr,
+                     pnorm(-abs(z2)), 1 - pnorm(-abs(z2)))
+        # take higher p value as p value for the outcome of TOST
+        ptost <- max(p1, p2)
+        # p value for NHST
+        pttest <- 2 * (1 - pt(
+          abs(corr) * sqrt(n - 2)/
+            sqrt(1 - abs(corr)^2), n - 2
+        ))
+        # confidence intervals
+        zLL90 <- (log((1 + corr)/(1 - corr))/2) -
+          qnorm(1 - alpha) * sqrt(1/(n - 3))
+        zUL90 <- (log((1 + corr)/(1 - corr))/2) +
+          qnorm(1 - alpha) * sqrt(1/(n - 3))
+        zLL95 <- (log((1 + corr)/(1 - corr))/2) -
+          qnorm(1 - (alpha/2)) * sqrt(1/(n - 3))
+        zUL95 <- (log((1 + corr)/(1 - corr))/2) +
+          qnorm(1 - (alpha/2)) * sqrt(1/(n - 3))
+        
+        list(LL90 = (exp(1)^(2 * zLL90) - 1)/(exp(1)^(2 * zLL90) + 1),
+             UL90 = (exp(1)^(2 * zUL90) - 1)/(exp(1)^(2 * zUL90) + 1),
+             LL95 = (exp(1)^(2 * zLL95) - 1)/(exp(1)^(2 * zLL95) + 1),
+             UL95 = (exp(1)^(2 * zUL95) - 1)/(exp(1)^(2 * zUL95) + 1),
+             testoutcome = ifelse(pttest < alpha, 1, 0),
+             TOSToutcome = ifelse(ptost < alpha, 1, 0))
+      }
+      
       if (input$sim_button == 0) #wait until button is pressed to show first plot
         return()
       
@@ -254,135 +345,117 @@ server <- function(input, output) {
         n_iter <- input$n_iter
         t_results <- data.frame(N = 1:n_iter)
         
-        #### to do: replace for loops with map calls
-        # get_TOST <- function(n1, n2, m1, m2, sd1, sd2){
-        #   # generate random samples from given input
-        #   samp1 <- rnorm(n = n1, mean = m1, sd = sd1)
-        #   samp2 <- rnorm(n = n2, mean = m2, sd = sd2)
-        #   # calculate summary statistics from the random samples
-        #   m1_s <- mean(samp1)
-        #   sd1_s <- sd(samp1)
-        #   m2_s <- mean(samp2)
-        #   sd2_s <- sd(samp2)
-        #   
-        #   t1 <- ((m1_s - m2_s) - low_eqbound)/sqrt(sd1_s^2/n1 + sd2_s^2/n2)
-        #   degree_f <- (sd1_s^2/n1 + sd2_s^2/n2)^2/(((sd1_s^2/n1)^2/
-        #                                               (n1 - 1)) + ((sd2_s^2/n2)^2/(n2 - 1)))
-        #   p1 <- pt(t1, degree_f, lower.tail = FALSE)
-        #   t2 <- ((m1_s - m2_s) - high_eqbound)/sqrt(sd1_s^2/n1 + sd2_s^2/n2)
-        #   p2 <- pt(t2, degree_f, lower.tail = TRUE)
-        #   # take higher p value as p value for the outcome of TOST
-        #   ptost <- max(p1, p2)
-        #   t <- (m1_s - m2_s)/sqrt(sd1_s^2/n1 + sd2_s^2/n2)
-        #   # p value for NHST
-        #   pttest <- 2 * pt(-abs(t), df = degree_f)
-        #   
-        #   list(LL90 = (m1_s - m2_s) - qt(1 - alpha, degree_f) * sqrt(sd1_s^2/n1 + sd2_s^2/n2),
-        #        UL90 = (m1_s - m2_s) + qt(1 - alpha, degree_f) * sqrt(sd1_s^2/n1 + sd2_s^2/n2),
-        #        LL95 = (m1_s - m2_s) - qt(1 - (alpha/2), degree_f) * sqrt(sd1_s^2/n1 + sd2_s^2/n2),
-        #        UL95 = (m1_s - m2_s) + qt(1 - (alpha/2), degree_f) * sqrt(sd1_s^2/n1 + sd2_s^2/n2),
-        #        testoutcome = if_else(pttest < alpha, 1, 0),
-        #        TOSToutcome = if_else(ptost < alpha, 1, 0))
-        # }
-        
         switch(input$tabselected,
                `1` =  {
-                 withProgress(message = "Making plot", value = 0, {
-                   for (i in 1:n_iter){ # loop over iterations
-                     # generate random samples from given input
-                     samp1 <- rnorm(n = n1, mean = m1, sd = sd1)
-                     samp2 <- rnorm(n = n2, mean = m2, sd = sd2)
-                     # calculate summary statistics from the random samples
-                     m1_s <- mean(samp1)
-                     sd1_s <- sd(samp1)
-                     m2_s <- mean(samp2)
-                     sd2_s <- sd(samp2)
-                     
-                     # Increment the progress bar, and update the detail text.
-                     incProgress(1/n_iter, detail = paste("Doing part", i))
-                     
-                     t1 <- ((m1_s - m2_s) - low_eqbound)/sqrt(sd1_s^2/n1 + sd2_s^2/n2)
-                     degree_f <- (sd1_s^2/n1 + sd2_s^2/n2)^2/(((sd1_s^2/n1)^2/
-                                                                 (n1 - 1)) + ((sd2_s^2/n2)^2/(n2 - 1)))
-                     p1 <- pt(t1, degree_f, lower.tail = FALSE)
-                     t2 <- ((m1_s - m2_s) - high_eqbound)/sqrt(sd1_s^2/n1 + sd2_s^2/n2)
-                     p2 <- pt(t2, degree_f, lower.tail = TRUE)
-                     # take higher p value as p value for the outcome of TOST
-                     ptost <- max(p1, p2)
-                     t <- (m1_s - m2_s)/sqrt(sd1_s^2/n1 + sd2_s^2/n2)
-                     # p value for NHST
-                     pttest <- 2 * pt(-abs(t), df = degree_f)
-                     # confidence intervals
-                     t_results$LL90[i] <- (m1_s - m2_s) - qt(1 - alpha, degree_f) *
-                       sqrt(sd1_s^2/n1 + sd2_s^2/n2)
-                     t_results$UL90[i] <- (m1_s - m2_s) + qt(1 - alpha, degree_f) *
-                       sqrt(sd1_s^2/n1 + sd2_s^2/n2)
-                     t_results$LL95[i] <- (m1_s - m2_s) - qt(1 - (alpha/2), degree_f) *
-                       sqrt(sd1_s^2/n1 + sd2_s^2/n2)
-                     t_results$UL95[i] <- (m1_s - m2_s) + qt(1 - (alpha/2), degree_f) *
-                       sqrt(sd1_s^2/n1 + sd2_s^2/n2)
-                     # test outcomes
-                     t_results$testoutcome[i] <- ifelse(pttest < alpha, 1, 0)
-                     t_results$TOSToutcome[i] <- ifelse(ptost < alpha, 1, 0)
-                   }
-                   #change plot title, so one plot call works on all types of input
-                   x_Title <- "Mean Difference"
-                 })
-                 
+                 # withProgress(message = "Making plot", value = 0, {
+                 #   for (i in 1:n_iter){ # loop over iterations
+                 #     # generate random samples from given input
+                 #     samp1 <- rnorm(n = n1, mean = m1, sd = sd1)
+                 #     samp2 <- rnorm(n = n2, mean = m2, sd = sd2)
+                 #     # calculate summary statistics from the random samples
+                 #     m1_s <- mean(samp1)
+                 #     sd1_s <- sd(samp1)
+                 #     m2_s <- mean(samp2)
+                 #     sd2_s <- sd(samp2)
+                 #     
+                 #     # Increment the progress bar, and update the detail text.
+                 #     incProgress(1/n_iter, detail = paste("Doing part", i))
+                 #     
+                 #     t1 <- ((m1_s - m2_s) - low_eqbound)/sqrt(sd1_s^2/n1 + sd2_s^2/n2)
+                 #     degree_f <- (sd1_s^2/n1 + sd2_s^2/n2)^2/(((sd1_s^2/n1)^2/
+                 #                                                 (n1 - 1)) + ((sd2_s^2/n2)^2/(n2 - 1)))
+                 #     p1 <- pt(t1, degree_f, lower.tail = FALSE)
+                 #     t2 <- ((m1_s - m2_s) - high_eqbound)/sqrt(sd1_s^2/n1 + sd2_s^2/n2)
+                 #     p2 <- pt(t2, degree_f, lower.tail = TRUE)
+                 #     # take higher p value as p value for the outcome of TOST
+                 #     ptost <- max(p1, p2)
+                 #     t <- (m1_s - m2_s)/sqrt(sd1_s^2/n1 + sd2_s^2/n2)
+                 #     # p value for NHST
+                 #     pttest <- 2 * pt(-abs(t), df = degree_f)
+                 #     # confidence intervals
+                 #     t_results$LL90[i] <- (m1_s - m2_s) - qt(1 - alpha, degree_f) *
+                 #       sqrt(sd1_s^2/n1 + sd2_s^2/n2)
+                 #     t_results$UL90[i] <- (m1_s - m2_s) + qt(1 - alpha, degree_f) *
+                 #       sqrt(sd1_s^2/n1 + sd2_s^2/n2)
+                 #     t_results$LL95[i] <- (m1_s - m2_s) - qt(1 - (alpha/2), degree_f) *
+                 #       sqrt(sd1_s^2/n1 + sd2_s^2/n2)
+                 #     t_results$UL95[i] <- (m1_s - m2_s) + qt(1 - (alpha/2), degree_f) *
+                 #       sqrt(sd1_s^2/n1 + sd2_s^2/n2)
+                 #     # test outcomes
+                 #     t_results$testoutcome[i] <- ifelse(pttest < alpha, 1, 0)
+                 #     t_results$TOSToutcome[i] <- ifelse(ptost < alpha, 1, 0)
+                 #   }
+                 #   #change plot title, so one plot call works on all types of input
+                 #   x_Title <- "Mean Difference"
+                 # })
+                 x_Title <- "Mean Difference"
+                 t_results <- t_results %>%
+                   mutate(results = map(N, ~get_TOSTT(n1 = n1,
+                                                      n2 = n2,
+                                                      m1 = m1,
+                                                      m2 = m2,
+                                                      sd1 = sd1,
+                                                      sd2 = sd2))) %>%
+                   unnest_wider(results)
+
                },
                `2` = {
-                 withProgress(message = 'Preparing Simulation Plot', value = 0, {
-                   # effect size (mean difference)
-                   eff_size <- m2 - m1
-                   
-                   if (r_paired == 0){ # special case for 0 repeatability to avoid divide by zero error
-                     sd_within <- sd_paired
-                     sd_between <- 0
-                   } else { # decomposition of standard variation to between- and within- components
-                     sd_between <- sqrt(sd_paired^2*r_paired)
-                     sd_within <- sqrt(sd_between^2*(1-r_paired)/r_paired)
-                   }
-                   
-                   
-                   for (i in 1:n_iter){ # loop over iterations
-                     # first generate individual intercepts, then sample individual data points by adding the
-                     # individual variance around those intercepts and the effect size to the second sample
-                     d <- tibble(ind_intercept = rnorm(n_paired, m1, sd_between)) %>%
-                       mutate(ind = 1:n()) %>%
-                       rowwise() %>%
-                       mutate(samp1 = rnorm(1, ind_intercept, sd_within),
-                              samp2 = rnorm(1, ind_intercept + eff_size, sd_within))
-                     
-                     # Increment the progress bar, and update the detail text
-                     incProgress(1/n_iter, detail = paste("Replication n", i))
-                     
-                     # calculate summary and test statistics for the random samples
-                     m1_s <- mean(d$samp1)
-                     m2_s <- mean(d$samp2)
-                     sdif <- sd(d$samp1 - d$samp2)
-                     se <- sdif/sqrt(n_paired)
-                     t <- (m1_s - m2_s)/se
-                     degree_f <- n_paired - 1
-                     pttest <- 2 * pt(abs(t), degree_f, lower.tail = FALSE)
-                     t1 <- ((m1_s - m2_s) - low_eqbound)/se
-                     p1 <- pt(t1, degree_f, lower.tail = FALSE)
-                     t2 <- ((m1_s - m2_s) - high_eqbound)/se
-                     p2 <- pt(t2, degree_f, lower.tail = TRUE)
-                     # take higher p value as p value for the outcome of TOST
-                     ptost <- max(p1, p2)
-                     # confidence intervals
-                     t_results$LL90[i] <- ((m1_s - m2_s) - qt(1 - alpha, degree_f) * se)
-                     t_results$UL90[i] <- ((m1_s - m2_s) + qt(1 - alpha, degree_f) * se)
-                     t_results$LL95[i] <- ((m1_s - m2_s) - qt(1 - (alpha/2), degree_f) * se)
-                     t_results$UL95[i] <- ((m1_s - m2_s) + qt(1 - (alpha/2), degree_f) * se)
-                     # test outcomes
-                     t_results$testoutcome[i] <- ifelse(pttest < alpha, 1, 0)
-                     t_results$TOSToutcome[i] <- ifelse(ptost < alpha, 1, 0)
-                   }
-                   #change plot title, so one plot call works on all types of input
-                   x_Title <- "Mean Difference"
-                 })
+                 # withProgress(message = 'Preparing Simulation Plot', value = 0, {
+                 #   # # effect size (mean difference)
+                 #   # eff_size <- m2 - m1
+                 #   
+                 #   # decomposition of standard variation to between- and within- components
+                 #     sd_between <- sqrt(sd_paired^2*r_paired)
+                 #     sd_within <- sqrt(sd_between^2*(1-r_paired)/r_paired)
+                 #   
+                 #   for (i in 1:n_iter){ # loop over iterations
+                 #     # first generate individual intercepts, then sample individual data points by adding the
+                 #     # individual variance around those intercepts and the effect size to the second sample
+                 #     d <- tibble(ind_intercept = rnorm(n_paired, m1, sd_between)) %>%
+                 #       mutate(ind = 1:n()) %>%
+                 #       rowwise() %>%
+                 #       mutate(samp1 = rnorm(1, ind_intercept, sd_within),
+                 #              samp2 = rnorm(1, ind_intercept + m2 - m1, sd_within))
+                 #     
+                 #     # Increment the progress bar, and update the detail text
+                 #     incProgress(1/n_iter, detail = paste("Replication n", i))
+                 #     
+                 #     # calculate summary and test statistics for the random samples
+                 #     m1_s <- mean(d$samp1)
+                 #     m2_s <- mean(d$samp2)
+                 #     sdif <- sd(d$samp1 - d$samp2)
+                 #     se <- sdif/sqrt(n_paired)
+                 #     t <- (m1_s - m2_s)/se
+                 #     degree_f <- n_paired - 1
+                 #     pttest <- 2 * pt(abs(t), degree_f, lower.tail = FALSE)
+                 #     t1 <- ((m1_s - m2_s) - low_eqbound)/se
+                 #     p1 <- pt(t1, degree_f, lower.tail = FALSE)
+                 #     t2 <- ((m1_s - m2_s) - high_eqbound)/se
+                 #     p2 <- pt(t2, degree_f, lower.tail = TRUE)
+                 #     # take higher p value as p value for the outcome of TOST
+                 #     ptost <- max(p1, p2)
+                 #     # confidence intervals
+                 #     t_results$LL90[i] <- ((m1_s - m2_s) - qt(1 - alpha, degree_f) * se)
+                 #     t_results$UL90[i] <- ((m1_s - m2_s) + qt(1 - alpha, degree_f) * se)
+                 #     t_results$LL95[i] <- ((m1_s - m2_s) - qt(1 - (alpha/2), degree_f) * se)
+                 #     t_results$UL95[i] <- ((m1_s - m2_s) + qt(1 - (alpha/2), degree_f) * se)
+                 #     # test outcomes
+                 #     t_results$testoutcome[i] <- ifelse(pttest < alpha, 1, 0)
+                 #     t_results$TOSToutcome[i] <- ifelse(ptost < alpha, 1, 0)
+                 #   }
+                 #   #change plot title, so one plot call works on all types of input
+                 #   x_Title <- "Mean Difference"
+                 # })
                  
+                 x_Title <- "Mean Difference"
+                 t_results <- t_results %>% 
+                   mutate(results = map(N, ~get_TOSTT(paired = TRUE,
+                                                      n_paired = n_paired,
+                                                      m1 = m1,
+                                                      m2 = m2,
+                                                      sd_paired = sd_paired,
+                                                      r_paired = r_paired))) %>%
+                   unnest_wider(results)
                },
                `3` = {
                  # make two random binomial vectors
@@ -440,65 +513,22 @@ server <- function(input, output) {
                  
                  d$samp1 <- dx_sorted[rx]
                  d$samp2 <- dy_sorted[ry]
-                 
-                 # sample n = "Number of pairs of observations" individuals from the total population and
-                 # save the correlation of the samples
-                 withProgress(message = 'Preparing Simulation Plot', value = 0, {
-                   for (i in 1:n_iter){ # loop over iterations
-                     t_results$cor[i] <- cor(dplyr::sample_n(d, n))[1,2]
-                     
-                     # Increment the progress bar, and update the detail text
-                     incProgress(1/n_iter, detail = paste("Replication n", i))
-                     
-                     # calculate z values
-                     z1 <- ((log((1 + abs(t_results$cor[i]))/(1 - abs(t_results$cor[i])))/2) -
-                              (log((1 + low_eqbound_r)/(1 - low_eqbound_r))/2))/(sqrt(1/(n - 3)))
-                     z2 <- ((log((1 + abs(t_results$cor[i]))/(1 - abs(t_results$cor[i])))/2) -
-                              (log((1 + high_eqbound_r)/(1 - high_eqbound_r))/2))/(sqrt(1/(n - 3)))
-                     # calculate p values for TOST
-                     p1 <- ifelse(low_eqbound_r < t_results$cor[i],
-                                  pnorm(-abs(z1)), 1 - pnorm(-abs(z1)))
-                     p2 <- ifelse(high_eqbound_r > t_results$cor[i],
-                                  pnorm(-abs(z2)), 1 - pnorm(-abs(z2)))
-                     # take higher p value as p value for the outcome of TOST
-                     ptost <- max(p1, p2)
-                     # p value for NHST
-                     pttest <- 2 * (1 - pt(
-                       abs(t_results$cor[i]) * sqrt(n - 2)/
-                         sqrt(1 - abs(t_results$cor[i])^2), n - 2
-                     ))
-                     # confidence intervals
-                     zLL90 <- (log((1 + t_results$cor[i])/(1 - t_results$cor[i]))/2) -
-                       qnorm(1 - alpha) * sqrt(1/(n - 3))
-                     zUL90 <- (log((1 + t_results$cor[i])/(1 - t_results$cor[i]))/2) +
-                       qnorm(1 - alpha) * sqrt(1/(n - 3))
-                     zLL95 <- (log((1 + t_results$cor[i])/(1 - t_results$cor[i]))/2) -
-                       qnorm(1 - (alpha/2)) * sqrt(1/(n - 3))
-                     zUL95 <- (log((1 + t_results$cor[i])/(1 - t_results$cor[i]))/2) +
-                       qnorm(1 - (alpha/2)) * sqrt(1/(n - 3))
-                     
-                     t_results$LL90[i] <- (exp(1)^(2 * zLL90) - 1)/(exp(1)^(2 * zLL90) + 1)
-                     t_results$UL90[i] <- (exp(1)^(2 * zUL90) - 1)/(exp(1)^(2 * zUL90) + 1)
-                     
-                     t_results$LL95[i] <- (exp(1)^(2 * zLL95) - 1)/(exp(1)^(2 * zLL95) + 1)
-                     t_results$UL95[i] <- (exp(1)^(2 * zUL95) - 1)/(exp(1)^(2 * zUL95) + 1)
-                     
-                     # test outcomes
-                     t_results$testoutcome[i] <- ifelse(pttest < alpha, 1, 0)
-                     t_results$TOSToutcome[i] <- ifelse(ptost < alpha, 1, 0)
-                   }
-                 })
+                
                  #rename plot-related variables, so one plot call works on all types of input
                  low_eqbound <- low_eqbound_r
                  high_eqbound <- high_eqbound_r
                  x_Title <- "Correlation"
+                 
+                 t_results <- t_results %>%
+                   mutate(results = map(N, ~get_TOSTcor(d, n))) %>%
+                   unnest_wider(results)
                }
         )
         # add test outcome and color information
         t_results <- t_results %>%
           mutate(outcome = paste0(testoutcome, TOSToutcome),
-                 tcolor = if_else(testoutcome == 1, "orchid1", "darkgray"),
-                 TOSTcolor = if_else(TOSToutcome == 1, "limegreen", "darkgray"))
+                 tcolor = ifelse(testoutcome == 1, "orchid1", "darkgray"),
+                 TOSTcolor = ifelse(TOSToutcome == 1, "limegreen", "darkgray"))
         # calculate proportions of test outcomes types out of all iterations
         summ <- t_results %>% 
           group_by(outcome) %>%
