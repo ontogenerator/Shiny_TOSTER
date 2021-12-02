@@ -90,28 +90,28 @@ ui <- fluidPage(
                   conditionalPanel(condition = "input.tabselected > 2 && input.sample == 'observed'",
                                    numericInput("sesoi_r",
                                                 label = h3("Smallest Effect Size of Interest (SESOI)"),
-                                                value = 0.3, step = 0.05, min = 0.01)
+                                                value = 0.1, step = 0.05, min = 0.01)
                   ),
                   conditionalPanel(condition = "input.tabselected > 2 && input.sample == 'simulated'",
                                    numericInput("sim_sesoi_r",
                                                 label = h3("Smallest Effect Size of Interest (SESOI)"),
-                                                value = 0.3, step = 0.05, min = 0.01)
+                                                value = 0.1, step = 0.05, min = 0.01)
                   ),
                   conditionalPanel(condition = "input.tabselected == 3 && input.sample == 'observed'",
                                    numericInput("pr1",
                                                 label = h3("Proportion in first group"),
-                                                value = 0.5, step = 0.1, min = 0, max = 1),
+                                                value = 0.5, step = 0.05, min = 0, max = 1),
                                    numericInput("pr2",
                                                 label = h3("Proportion in second group"),
-                                                value = 0.65, step = 0.1, min = 0, max = 1)
+                                                value = 0.65, step = 0.05, min = 0, max = 1)
                   ),
                   conditionalPanel(condition = "input.tabselected == 3 && input.sample == 'simulated'",
                                    numericInput("sim_pr1",
                                                 label = h3("Proportion in simulated first group"),
-                                                value = 0.5, step = 0.1, min = 0, max = 1),
+                                                value = 0.5, step = 0.05, min = 0, max = 1),
                                    numericInput("sim_pr2",
                                                 label = h3("Proportion in simulated second group"),
-                                                value = 0.65, step = 0.1, min = 0, max = 1)
+                                                value = 0.65, step = 0.05, min = 0, max = 1)
                   ),
                   conditionalPanel(condition = "input.tabselected == 4 && input.sample == 'observed'",
                                    numericInput("n",
@@ -163,7 +163,18 @@ ui <- fluidPage(
                 )
   )
 
-server <- function(input, output) {
+server <- function(input, output, session) {
+  
+  observe({
+    updateNumericInput(session, "n1", value = case_when(input$tabselected == 3 ~ 200,
+                                                            TRUE ~ 10))
+    updateNumericInput(session, "n2", value = case_when(input$tabselected == 3 ~ 200,
+                                                        TRUE ~ 10))
+    updateNumericInput(session, "sim_n1", value = case_when(input$tabselected == 3 ~ 200,
+                                                        TRUE ~ 10))
+    updateNumericInput(session, "sim_n2", value = case_when(input$tabselected == 3 ~ 200,
+                                                        TRUE ~ 10))
+  })
 
   output$results <- renderPlot({
     # store inputs into variables
@@ -563,7 +574,7 @@ server <- function(input, output) {
           geom_segment(aes(x = LL95, xend = UL95, y = N, yend = N, color = as.factor(tcolor))) +
           geom_segment(aes(x = LL90, xend = UL90, y = N, yend = N, color = as.factor(TOSTcolor))) +
           theme_bw() +
-          scale_color_identity(guide = FALSE) +
+          scale_color_identity(guide = "none") +
           geom_text(data = labels, aes(x, y, color = color, label = text, hjust = hjust),
                     size = 5, fontface = "bold", check_overlap = TRUE) +
           xlab(x_Title) +
