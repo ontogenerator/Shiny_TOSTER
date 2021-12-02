@@ -20,11 +20,7 @@ In both cases, the following packages need to be installed in order for the app 
 
 `MASS` from <https://cran.r-project.org/web/packages/MASS/index.html>
 
-`dplyr` from <https://cran.r-project.org/web/packages/dplyr/index.html>
-
-`ggplot2` from <https://cran.r-project.org/web/packages/ggplot2/index.html>
-
-`purrr` from <https://cran.r-project.org/web/packages/purrr/index.html> 
+`tidyverse` from <https://cran.r-project.org/web/packages/tidyverse/index.html>
 
 ### Launching the app locally
 
