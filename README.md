@@ -55,12 +55,12 @@ The output is displayed as a stack of all (e.g. 1000) iterations in a "dance of 
 
 | Full name           | Label & Color                                                                    | Outcome of TOST | Outcome of NHST |
 |---------------------|----------------------------------------------------------------------------------|-----------------|-----------------|
-| inconclusive        | inc ![\#A9A9A9](https://placehold.it/15/A9A9A9/000000?text=+) `darkgray`         | non-equivalent  | non-significant |
-| non-equivalent      | nonequiv ![\#FF83FA](https://placehold.it/15/FF83FA/000000?text=+) `orchid1`     | non-equivalent  | significant     |
-| strictly equivalent | str\_equiv ![\#32CD32](https://placehold.it/15/32CD32/000000?text=+) `limegreen` | equivalent      | non-significant |
-| trivial             | triv ![\#32CD32](https://placehold.it/15/32CD32/000000?text=+) `limegreen`       | equivalent      | significant     |
-| non-zero            | nonzero ![\#FF83FA](https://placehold.it/15/FF83FA/000000?text=+) `orchid1`      | irrelevant      | significant     |
-| equivalent          | equiv ![\#32CD32](https://placehold.it/15/32CD32/000000?text=+) `limegreen`      | significant     | irrelevant      |
+| inconclusive        | inc ![\#A9A9A9](gray.png) `darkgray`         | non-equivalent  | non-significant |
+| non-equivalent      | nonequiv ![\#FF83FA](orchid.png) `orchid1`     | non-equivalent  | significant     |
+| strictly equivalent | str\_equiv ![\#32CD32](limegreen.png) `limegreen` | equivalent      | non-significant |
+| trivial             | triv ![\#32CD32](limegreen.png) `limegreen`       | equivalent      | significant     |
+| non-zero            | nonzero ![\#FF83FA](orchid.png) `orchid1`      | irrelevant      | significant     |
+| equivalent          | equiv ![\#32CD32](limegreen.png) `limegreen`      | significant     | irrelevant      |
 
 The input options for the simulations (when the radiobutton `simulated` is selected) are in most cases identical to the ones for the standard input (when the radiobutton `observed` is selected), with the exception of the paired two-sample test and the correlations.
 
