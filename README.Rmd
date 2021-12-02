@@ -13,28 +13,28 @@ The TOSTER R package can be installed from CRAN using install.packages (TOSTER).
 
 ## Getting Started
 
-You can copy the app file Shiny_TOSTER.R to your system and run it locally. Alternatively, you can launch it from GitHub without installation.   
+You can copy the app file app.R to your system and run it locally. Alternatively, you can launch it from GitHub without installation.
 
 ### Prerequisites
 
 In both cases, the following packages need to be installed in order for the app to run:
 
-`shiny` from https://cran.r-project.org/web/packages/shiny/index.html  
+`shiny` from <https://cran.r-project.org/web/packages/shiny/index.html>
 
-`TOSTER` from https://cran.r-project.org/web/packages/TOSTER/index.html  
+`TOSTER` from <https://cran.r-project.org/web/packages/TOSTER/index.html>
 
-`MASS` from https://cran.r-project.org/web/packages/MASS/index.html  
+`MASS` from <https://cran.r-project.org/web/packages/MASS/index.html>
 
-`tidyverse` from https://cran.r-project.org/web/packages/tidyverse/index.html  
+`tidyverse` from <https://cran.r-project.org/web/packages/tidyverse/index.html>
 
 ### Launching the app locally
 
-You can launch the app by giving the name of its directory to the function runApp. If the app is in a folder of the working directory called "Shiny_TOSTER", run it with the following code:
-```
-library(shiny)
-runApp("Shiny_TOSTER")
-```
-Alternatively, you can open the file Shiny_TOSTER.R in the RStudio editor and click the "Run App" button at the top of the editor.  
+You can launch the app by giving the name of its directory to the function runApp. If the app is in a folder of the working directory called "Shiny\_TOSTER", run it with the following code:
+
+    library(shiny)
+    runApp("Shiny_TOSTER")
+
+Alternatively, you can open the file app.R in the RStudio editor and click the "Run App" button at the top of the editor.  
 
 ### Launching the app from GitHub without installation
 

@@ -8,7 +8,7 @@ The TOSTER R package can be installed from CRAN using install.packages (TOSTER).
 Getting Started
 ---------------
 
-You can copy the app file Shiny\_TOSTER.R to your system and run it locally. Alternatively, you can launch it from GitHub without installation.
+You can copy the app file app.R to your system and run it locally. Alternatively, you can launch it from GitHub without installation.
 
 ### Prerequisites
 
@@ -29,7 +29,7 @@ You can launch the app by giving the name of its directory to the function runAp
     library(shiny)
     runApp("Shiny_TOSTER")
 
-Alternatively, you can open the file Shiny\_TOSTER.R in the RStudio editor and click the "Run App" button at the top of the editor.
+Alternatively, you can open the file app.R in the RStudio editor and click the "Run App" button at the top of the editor.
 
 ### Launching the app from GitHub without installation
 
