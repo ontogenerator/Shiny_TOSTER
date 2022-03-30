@@ -11,7 +11,7 @@ The TOSTER R package can be installed from CRAN using install.packages (TOSTER).
 Getting Started
 ---------------
 
-You can copy the app file Shiny\_TOSTER.R to your system and run it locally. Alternatively, you can launch it from GitHub without installation.
+You can copy the app file app.R to your system and run it locally. Alternatively, you can launch it from GitHub without installation.
 
 ### Prerequisites
 
@@ -32,7 +32,7 @@ You can launch the app by giving the name of its directory to the function runAp
     library(shiny)
     runApp("Shiny_TOSTER")
 
-Alternatively, you can open the file Shiny\_TOSTER.R in the RStudio editor and click the "Run App" button at the top of the editor.
+Alternatively, you can open the file app.R in the RStudio editor and click the "Run App" button at the top of the editor.
 
 ### Launching the app from GitHub without installation
 
@@ -50,16 +50,16 @@ Usage
 
 The interface allows the user to play around with the inputs and observe how the values change the output of the TOST tests. An additional feature is to let the inputs represent the hypothesized true parameters of interest, e.g. what the experimenter expects the results to look like and bootstrap from those values. A given `Number of iterations` is performed, resampling from the corresponding distributions.
 This feature is activated by first selecting the radiobutton `simulated`, which changes the input and the output view. The simulations are only performed when the button `Perform simulations` is clicked, in order to avoid constant recalculation when the input is changed.
-The output is displayed as a stack of all (e.g. 1000) iterations in a "dance of the confidence intervals" style. Both the 95% (for alpha = 0.05) and the 90% confidence intervals are plotted with the same width on top of each other, coded in different colors depending on statistical significance. Non-significant results are plotted in dark gray, significant results from NHST are plotted in orchid, and sifniciant results from TOST are plotted in lime green. Additionally the plot displays the proportion of iterations that yielded all possible outcomes. These outcomes are labeled and color-coded as follows:
+The output is displayed as a stack of all (e.g. 1000) iterations in a "dance of the confidence intervals" style. Both the 95% (for alpha = 0.05) and the 90% confidence intervals are plotted with the same width on top of each other, coded in different colors depending on statistical significance. Non-significant results are plotted in dark gray, significant results from NHST are plotted in orchid, and significant results from TOST are plotted in lime green. Additionally the plot displays the proportion of iterations that yielded all possible outcomes. These outcomes are labeled and color-coded as follows:
 
 | Full name           | Label & Color                                                                    | Outcome of TOST | Outcome of NHST |
 |---------------------|----------------------------------------------------------------------------------|-----------------|-----------------|
-| inconclusive        | inc ![\#A9A9A9](https://placehold.it/15/A9A9A9/000000?text=+) `darkgray`         | non-equivalent  | non-significant |
-| non-equivalent      | nonequiv ![\#FF83FA](https://placehold.it/15/FF83FA/000000?text=+) `orchid1`     | non-equivalent  | significant     |
-| strictly equivalent | str\_equiv ![\#32CD32](https://placehold.it/15/32CD32/000000?text=+) `limegreen` | equivalent      | non-significant |
-| trivial             | triv ![\#32CD32](https://placehold.it/15/32CD32/000000?text=+) `limegreen`       | equivalent      | significant     |
-| non-zero            | nonzero ![\#FF83FA](https://placehold.it/15/FF83FA/000000?text=+) `orchid1`      | irrelevant      | significant     |
-| equivalent          | equiv ![\#32CD32](https://placehold.it/15/32CD32/000000?text=+) `limegreen`      | significant     | irrelevant      |
+| inconclusive        | inc ![\#A9A9A9](gray.png) `darkgray`         | non-equivalent  | non-significant |
+| non-equivalent      | nonequiv ![\#FF83FA](orchid.png) `orchid1`     | non-equivalent  | significant     |
+| strictly equivalent | str\_equiv ![\#32CD32](limegreen.png) `limegreen` | equivalent      | non-significant |
+| trivial             | triv ![\#32CD32](limegreen.png) `limegreen`       | equivalent      | significant     |
+| non-zero            | nonzero ![\#FF83FA](orchid.png) `orchid1`      | irrelevant      | significant     |
+| equivalent          | equiv ![\#32CD32](limegreen.png) `limegreen`      | significant     | irrelevant      |
 
 The input options for the simulations (when the radiobutton `simulated` is selected) are in most cases identical to the ones for the standard input (when the radiobutton `observed` is selected), with the exception of the paired two-sample test and the correlations.
 
