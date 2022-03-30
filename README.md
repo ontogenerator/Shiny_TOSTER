@@ -1,7 +1,10 @@
 Shiny\_TOSTER app
 =================
 
-This app adds a user interface to the [TOSTER](https://cran.r-project.org/web/packages/TOSTER/index.html) package. In the current version only raw SESOI (smallest effect size of interest) input is implemented.
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5750034.svg)](https://doi.org/10.5281/zenodo.5750034)
+
+This app adds a user interface to the [TOSTER](https://cran.r-project.org/web/packages/TOSTER/index.html) package, demonstrating the usefulness of Two One-Sided Test (TOST) equivalence testing. In the current version only raw SESOI (smallest effect size of interest) input is implemented.
 
 The TOSTER R package can be installed from CRAN using install.packages (TOSTER). Detailed example vignettes are available from: <https://cran.rstudio.com/web/packages/TOSTER/vignettes/IntroductionToTOSTER.html>
 
@@ -20,11 +23,7 @@ In both cases, the following packages need to be installed in order for the app 
 
 `MASS` from <https://cran.r-project.org/web/packages/MASS/index.html>
 
-`dplyr` from <https://cran.r-project.org/web/packages/dplyr/index.html>
-
-`ggplot2` from <https://cran.r-project.org/web/packages/ggplot2/index.html>
-
-`purrr` from <https://cran.r-project.org/web/packages/purrr/index.html> 
+`tidyverse` from <https://cran.r-project.org/web/packages/tidyverse/index.html>
 
 ### Launching the app locally
 
@@ -46,8 +45,8 @@ From the R console run the following commands to launch the App:
 
 Your browser should launch the shiny app directly on your machine.
 
-App description
----------------
+Usage
+-----
 
 The interface allows the user to play around with the inputs and observe how the values change the output of the TOST tests. An additional feature is to let the inputs represent the hypothesized true parameters of interest, e.g. what the experimenter expects the results to look like and bootstrap from those values. A given `Number of iterations` is performed, resampling from the corresponding distributions.
 This feature is activated by first selecting the radiobutton `simulated`, which changes the input and the output view. The simulations are only performed when the button `Perform simulations` is clicked, in order to avoid constant recalculation when the input is changed.
@@ -76,7 +75,7 @@ The correlation test is simulated as follows: first a virtual population of a ce
 License
 -------
 
-Copyright (C) 2020 Vladislav Nachev
+Copyright (C) 2022 Vladislav Nachev
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

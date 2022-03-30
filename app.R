@@ -1,7 +1,14 @@
-library(shiny)
-library(TOSTER)
-library(MASS)
-library(tidyverse)
+# Package names
+packages <- c("tidyverse", "MASS", "TOSTER", "shiny")
+
+# check installed packages and install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# load all packages
+invisible(lapply(packages, library, character.only = TRUE))
 
 ui <- fluidPage(
   titlePanel("TOSTER Visualization Tool"),
